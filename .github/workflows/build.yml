@@ -26,7 +26,7 @@ jobs:
     
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --name SnakeGame --console snake_game.py
+        pyinstaller --onefile --name SnakeGame --console game.py
     
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4    # Đã cập nhật lên v4
@@ -80,7 +80,7 @@ jobs:
     
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --name SnakeGame --console snake_game.py
+        pyinstaller --onefile --name SnakeGame --console game.py
         chmod +x dist/SnakeGame
     
     - name: Upload Linux artifact
