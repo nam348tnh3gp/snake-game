@@ -12,10 +12,10 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
@@ -29,25 +29,21 @@ jobs:
         pyinstaller --onefile --name SnakeGame --console snake_game.py
     
     - name: Upload Windows artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4    # Đã cập nhật lên v4
       with:
         name: SnakeGame-Windows
         path: dist/SnakeGame.exe
+        # Nén file để tăng tốc upload (tùy chọn)
+        compression-level: 6
     
     - name: Upload to release (if tag)
       if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: dist/SnakeGame.exe
         name: Snake Game ${{ github.ref_name }}
         body: |
           ### Snake Game Pro Max - The Final Chapter
-          
-          **Changes in this release:**
-          - Full game features
-          - Wall mode toggle
-          - Frenzy mode
-          - Multiple food types
           
           **How to play:**
           - Use arrow keys or WASD to move
@@ -60,10 +56,10 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
@@ -88,35 +84,35 @@ jobs:
         chmod +x dist/SnakeGame
     
     - name: Upload Linux artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4    # Đã cập nhật lên v4
       with:
         name: SnakeGame-Linux
         path: dist/SnakeGame
+        compression-level: 6
     
     - name: Upload to release (if tag)
       if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: dist/SnakeGame
         append_body: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Tạo multi-platform release
   create-release:
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4    # Đã cập nhật lên v4
       with:
         path: artifacts
     
     - name: List artifacts
       run: |
         ls -la artifacts/
-        mkdir release
+        mkdir -p release
     
     - name: Organize release files
       run: |
@@ -128,20 +124,21 @@ jobs:
       run: |
         cd release
         sha256sum * > checksums.txt
+        cat checksums.txt
     
     - name: Upload to release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: release/*
         name: Snake Game ${{ github.ref_name }}
         body: |
           ## 🎮 Snake Game Pro Max - The Final Chapter
           
-          ### Download for your platform:
+          ### 📥 Download for your platform:
           - **Windows**: `SnakeGame_windows_${{ github.ref_name }}.exe`
           - **Linux**: `SnakeGame_linux_${{ github.ref_name }}`
           
-          ### Features:
+          ### ✨ Features:
           - 🐍 Classic snake gameplay with modern twists
           - 🌟 Multiple food types (Golden, Blue, Purple)
           - ⚡ Frenzy mode for extra speed and invincibility
@@ -149,11 +146,15 @@ jobs:
           - 🚧 Dynamic obstacles
           - 📊 High score tracking
           
-          ### Controls:
+          ### 🎮 Controls:
           - **Arrow Keys / WASD**: Move
           - **P**: Pause
           - **W**: Toggle Wall Mode
           - **SPACE**: Start/Restart
           - **ESC**: Quit
+          
+          ### 📝 Note:
+          - File highscore sẽ được tạo trong cùng thư mục với game
+          - Cần có file âm thanh (`.wav`) để có hiệu ứng âm thanh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
