@@ -23,35 +23,29 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller pygame
-    
-    - name: Build with PyInstaller
+
+    - name: Build with PyInstaller (Windows)
+      shell: pwsh
       run: |
-        pyinstaller --onefile --name SnakeGame --console game.py
+        $addDataArgs = @()
+        @("eat.wav", "gameover.wav", "frenzy.wav", "obstacle.wav") | ForEach-Object {
+          if (Test-Path $_) {
+            $addDataArgs += "--add-data"
+            $addDataArgs += "${_};."
+          } else {
+            Write-Host "Audio file $_ not found, skipping."
+          }
+        }
+        $cmd = "pyinstaller --onefile --windowed --name SnakeGame $addDataArgs game.py"
+        Write-Host "Executing: $cmd"
+        Invoke-Expression $cmd
     
     - name: Upload Windows artifact
-      uses: actions/upload-artifact@v4    # Đã cập nhật lên v4
+      uses: actions/upload-artifact@v4
       with:
         name: SnakeGame-Windows
         path: dist/SnakeGame.exe
-        # Nén file để tăng tốc upload (tùy chọn)
         compression-level: 6
-    
-    - name: Upload to release (if tag)
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2
-      with:
-        files: dist/SnakeGame.exe
-        name: Snake Game ${{ github.ref_name }}
-        body: |
-          ### Snake Game Pro Max - The Final Chapter
-          
-          **How to play:**
-          - Use arrow keys or WASD to move
-          - Press P to pause
-          - Press W for Wall Mode
-          - Avoid brown obstacles!
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-linux:
     runs-on: ubuntu-latest
@@ -77,27 +71,28 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller pygame
-    
-    - name: Build with PyInstaller
+
+    - name: Build with PyInstaller (Linux)
+      shell: bash
       run: |
-        pyinstaller --onefile --name SnakeGame --console game.py
+        ADD_DATA_ARGS=()
+        for file in eat.wav gameover.wav frenzy.wav obstacle.wav; do
+          if [ -f "$file" ]; then
+            ADD_DATA_ARGS+=("--add-data" "${file}:.")
+          else
+            echo "Audio file $file not found, skipping."
+          fi
+        done
+        echo "Add data args: ${ADD_DATA_ARGS[@]}"
+        pyinstaller --onefile --windowed --name SnakeGame "${ADD_DATA_ARGS[@]}" game.py
         chmod +x dist/SnakeGame
     
     - name: Upload Linux artifact
-      uses: actions/upload-artifact@v4    # Đã cập nhật lên v4
+      uses: actions/upload-artifact@v4
       with:
         name: SnakeGame-Linux
         path: dist/SnakeGame
         compression-level: 6
-    
-    - name: Upload to release (if tag)
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2
-      with:
-        files: dist/SnakeGame
-        append_body: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   create-release:
     needs: [build-windows, build-linux]
@@ -105,17 +100,13 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Download all artifacts
-      uses: actions/download-artifact@v4    # Đã cập nhật lên v4
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
     
-    - name: List artifacts
-      run: |
-        ls -la artifacts/
-        mkdir -p release
-    
     - name: Organize release files
       run: |
+        mkdir -p release
         cp artifacts/SnakeGame-Windows/SnakeGame.exe release/SnakeGame_windows_${{ github.ref_name }}.exe
         cp artifacts/SnakeGame-Linux/SnakeGame release/SnakeGame_linux_${{ github.ref_name }}
         chmod +x release/SnakeGame_linux_${{ github.ref_name }}
@@ -154,7 +145,7 @@ jobs:
           - **ESC**: Quit
           
           ### 📝 Note:
-          - File highscore sẽ được tạo trong cùng thư mục với game
-          - Cần có file âm thanh (`.wav`) để có hiệu ứng âm thanh
+          - File `highscore.txt` sẽ được tạo tự động khi chơi.
+          - Nếu không có file âm thanh (`.wav`), game vẫn chạy bình thường nhưng không có tiếng.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
