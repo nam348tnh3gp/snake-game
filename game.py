@@ -117,11 +117,12 @@ def save_high_score(score):
     except:
         pass
 
-def draw_grid():
-    for x in range(0, WIDTH, CELL_SIZE):
-        pygame.draw.line(screen, GRAY, (x, 0), (x, HEIGHT), 1)
-    for y in range(0, HEIGHT, CELL_SIZE):
-        pygame.draw.line(screen, GRAY, (0, y), (WIDTH, y), 1)
+# Hàm vẽ lưới không còn được sử dụng nữa, có thể giữ lại hoặc xóa.
+# def draw_grid():
+#     for x in range(0, WIDTH, CELL_SIZE):
+#         pygame.draw.line(screen, GRAY, (x, 0), (x, HEIGHT), 1)
+#     for y in range(0, HEIGHT, CELL_SIZE):
+#         pygame.draw.line(screen, GRAY, (0, y), (WIDTH, y), 1)
 
 def draw_snake(snake, offset_x=0, offset_y=0, frenzy=False, trail_history=None):
     if trail_history and frenzy:
@@ -346,7 +347,7 @@ def main():
             
             if paused:
                 screen.fill(BLACK)
-                draw_grid()
+                # draw_grid()  # <-- ĐÃ LOẠI BỎ
                 for obs in obstacles:
                     obs.draw(screen)
                 draw_snake(snake, 0, 0, pygame.time.get_ticks() < frenzy_end_time)
@@ -459,7 +460,7 @@ def main():
             speed_info = small_font.render(f"Speed: {current_speed}", True, CYAN)
             
             screen.fill(BLACK)
-            draw_grid()
+            # draw_grid()  # <-- ĐÃ LOẠI BỎ
             for obs in obstacles:
                 obs.draw(screen, offset_x, offset_y)
             draw_snake(snake, offset_x, offset_y, is_frenzy, list(trail_history) if is_frenzy else None)
@@ -492,7 +493,7 @@ def main():
                         sys.exit()
             
             screen.fill(BLACK)
-            draw_grid()
+            # draw_grid()  # <-- ĐÃ LOẠI BỎ
             for obs in obstacles:
                 obs.draw(screen)
             draw_snake(snake, 0, 0, False)
