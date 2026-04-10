@@ -229,7 +229,7 @@ def draw_pause():
 
 def draw_welcome():
     screen.fill(BLACK)
-    title_text = large_font.render("SNAKE PRO MAX - THE FINAL CHAPTER", True, GREEN)
+    title_text = large_font.render("SNAKE GAME", True, GREEN)
     control_text1 = font.render("Use ARROW KEYS or WASD to move", True, WHITE)
     control_text2 = font.render("Press P to pause | Press W for Wall Mode", True, WHITE)
     control_text3 = font.render("Eat PURPLE for FRENZY | Avoid BROWN obstacles!", True, PINK)
