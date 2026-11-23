@@ -5,6 +5,15 @@ import os
 import math
 from collections import deque
 
+# Create the bundled original audio on first source run if it is not present.
+try:
+    from audio.generate_audio import generate as generate_audio
+    required_audio = ("eat.wav", "gameover.wav", "frenzy.wav", "obstacle.wav", "neon_arcade_bgm.wav")
+    if not all(os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio", name)) for name in required_audio):
+        generate_audio()
+except Exception as audio_generation_error:
+    print(f"Audio asset generation skipped: {audio_generation_error}")
+
 pygame.init()
 pygame.mixer.init()
 
