@@ -43,14 +43,33 @@ OBSTACLE_SPAWN_SCORE = 15
 BASE_SPEED = 10
 MAX_SPEED = 28
 
+def asset_path(relative_path):
+    """Resolve assets in both source runs and PyInstaller one-file builds."""
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
 try:
-    eat_sound = pygame.mixer.Sound("eat.wav")
-    game_over_sound = pygame.mixer.Sound("gameover.wav")
-    frenzy_sound = pygame.mixer.Sound("frenzy.wav")
-    obstacle_sound = pygame.mixer.Sound("obstacle.wav")
-except:
+    eat_sound = pygame.mixer.Sound(asset_path("audio/eat.wav"))
+    game_over_sound = pygame.mixer.Sound(asset_path("audio/gameover.wav"))
+    frenzy_sound = pygame.mixer.Sound(asset_path("audio/frenzy.wav"))
+    obstacle_sound = pygame.mixer.Sound(asset_path("audio/obstacle.wav"))
+    pygame.mixer.music.load(asset_path("audio/neon_arcade_bgm.wav"))
+    pygame.mixer.music.set_volume(0.28)
+    AUDIO_AVAILABLE = True
+except (pygame.error, OSError) as audio_error:
     eat_sound = game_over_sound = frenzy_sound = obstacle_sound = None
-    print("Audio files not found - playing without sound")
+    AUDIO_AVAILABLE = False
+    print(f"Audio unavailable - continuing silently: {audio_error}")
+
+
+def start_background_music():
+    if AUDIO_AVAILABLE:
+        try:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+        except pygame.error:
+            pass
 
 class Particle:
     def __init__(self, x, y, color, text=None):
@@ -300,6 +319,7 @@ def main():
     
     while True:
         draw_welcome()
+        start_background_music()
         
         snake = deque([[GRID_WIDTH // 2, GRID_HEIGHT // 2]])
         direction = [1, 0]
@@ -331,6 +351,11 @@ def main():
                     
                     if event.key == pygame.K_p:
                         paused = not paused
+                        if AUDIO_AVAILABLE:
+                            if paused:
+                                pygame.mixer.music.pause()
+                            else:
+                                pygame.mixer.music.unpause()
                     
                     if event.key == pygame.K_w:
                         wall_mode = not wall_mode
@@ -479,6 +504,9 @@ def main():
             high_score = score
             save_high_score(high_score)
         
+        if AUDIO_AVAILABLE:
+            pygame.mixer.music.stop()
+
         game_over = True
         while game_over:
             for event in pygame.event.get():
