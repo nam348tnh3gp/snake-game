@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.12'
     
     - name: Install dependencies
       run: |
@@ -30,16 +30,18 @@ jobs:
     - name: Build with PyInstaller (Windows)
       shell: pwsh
       run: |
-        $addDataArgs = @()
+        $pyinstallerArgs = @("--onefile", "--windowed", "--name", "SnakeGame")
         if (Test-Path "audio") {
-          $addDataArgs += "--add-data"
-          $addDataArgs += "audio;audio"
+          $pyinstallerArgs += @("--add-data", "audio:audio")
         } else {
           Write-Host "Audio directory not found, building without bundled audio."
         }
-        $cmd = "pyinstaller --onefile --windowed --name SnakeGame $addDataArgs game.py"
-        Write-Host "Executing: $cmd"
-        Invoke-Expression $cmd
+        $pyinstallerArgs += "game.py"
+        Write-Host "Building SnakeGame with PyInstaller..."
+        & pyinstaller @pyinstallerArgs
+        if ($LASTEXITCODE -ne 0) {
+          exit $LASTEXITCODE
+        }
     
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
@@ -56,7 +58,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.12'
     
     - name: Install system dependencies
       run: |
