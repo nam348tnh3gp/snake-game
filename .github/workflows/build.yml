@@ -28,13 +28,11 @@ jobs:
       shell: pwsh
       run: |
         $addDataArgs = @()
-        @("eat.wav", "gameover.wav", "frenzy.wav", "obstacle.wav") | ForEach-Object {
-          if (Test-Path $_) {
-            $addDataArgs += "--add-data"
-            $addDataArgs += "${_};."
-          } else {
-            Write-Host "Audio file $_ not found, skipping."
-          }
+        if (Test-Path "audio") {
+          $addDataArgs += "--add-data"
+          $addDataArgs += "audio;audio"
+        } else {
+          Write-Host "Audio directory not found, building without bundled audio."
         }
         $cmd = "pyinstaller --onefile --windowed --name SnakeGame $addDataArgs game.py"
         Write-Host "Executing: $cmd"
@@ -76,13 +74,11 @@ jobs:
       shell: bash
       run: |
         ADD_DATA_ARGS=()
-        for file in eat.wav gameover.wav frenzy.wav obstacle.wav; do
-          if [ -f "$file" ]; then
-            ADD_DATA_ARGS+=("--add-data" "${file}:.")
-          else
-            echo "Audio file $file not found, skipping."
-          fi
-        done
+        if [ -d "audio" ]; then
+          ADD_DATA_ARGS+=("--add-data" "audio:audio")
+        else
+          echo "Audio directory not found, building without bundled audio."
+        fi
         echo "Add data args: ${ADD_DATA_ARGS[@]}"
         pyinstaller --onefile --windowed --name SnakeGame "${ADD_DATA_ARGS[@]}" game.py
         chmod +x dist/SnakeGame
