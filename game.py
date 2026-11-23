@@ -5,15 +5,6 @@ import os
 import math
 from collections import deque
 
-# Create the bundled original audio on first source run if it is not present.
-try:
-    from audio.generate_audio import generate as generate_audio
-    required_audio = ("eat.wav", "gameover.wav", "frenzy.wav", "obstacle.wav", "neon_arcade_bgm.wav")
-    if not all(os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio", name)) for name in required_audio):
-        generate_audio()
-except Exception as audio_generation_error:
-    print(f"Audio asset generation skipped: {audio_generation_error}")
-
 pygame.init()
 pygame.mixer.init()
 
@@ -63,13 +54,19 @@ try:
     game_over_sound = pygame.mixer.Sound(asset_path("audio/gameover.wav"))
     frenzy_sound = pygame.mixer.Sound(asset_path("audio/frenzy.wav"))
     obstacle_sound = pygame.mixer.Sound(asset_path("audio/obstacle.wav"))
-    pygame.mixer.music.load(asset_path("audio/neon_arcade_bgm.wav"))
+    pygame.mixer.music.load(asset_path("audio/music.wav"))
     pygame.mixer.music.set_volume(0.28)
     AUDIO_AVAILABLE = True
 except (pygame.error, OSError) as audio_error:
     eat_sound = game_over_sound = frenzy_sound = obstacle_sound = None
     AUDIO_AVAILABLE = False
     print(f"Audio unavailable - continuing silently: {audio_error}")
+
+# Optional menu/start cue included in the supplied audio pack.
+try:
+    ui_sound = pygame.mixer.Sound(asset_path("audio/ui.wav"))
+except (pygame.error, OSError):
+    ui_sound = None
 
 
 def start_background_music():
@@ -278,6 +275,8 @@ def draw_welcome():
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    if ui_sound:
+                        ui_sound.play()
                     waiting = False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
